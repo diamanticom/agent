@@ -45,4 +45,5 @@ message Route {
 	string device = 3;
 	string source = 4;
 	uint32 scope = 5;
+	uint32 priority = 6;
 }
