@@ -471,6 +471,7 @@ func getCurrentRoutes(netHandle *netlink.Handle) (*pb.Routes, error) {
 		}
 
 		r.Scope = uint32(route.Scope)
+		r.Priority = uint32(route.Priority)
 
 		link, err := netHandle.LinkByIndex(route.LinkIndex)
 		if err != nil {
