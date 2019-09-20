@@ -524,6 +524,7 @@ func (s *sandbox) processRoute(netHandle *netlink.Handle, route *types.Route) (*
 		Src:       net.ParseIP(route.Source),
 		Gw:        net.ParseIP(gateway),
 		Scope:     netlink.Scope(route.Scope),
+		Priority:  int(route.Priority),
 	}
 
 	return netRoute, nil
