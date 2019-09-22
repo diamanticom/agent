@@ -148,8 +148,8 @@ func TestUpdateRoutes(t *testing.T) {
 
 	//Test a simple route setup:
 	inputRoutesSimple := []*types.Route{
-		{Dest: "", Gateway: "192.168.0.1", Source: "", Scope: 0, Device: "ifc-name"},
-		{Dest: "192.168.0.0/16", Gateway: "", Source: "192.168.0.2", Scope: 253, Device: "ifc-name"},
+		{Dest: "", Gateway: "192.168.0.1", Source: "", Scope: 0, Device: "ifc-name", Priority: 13},
+		{Dest: "192.168.0.0/16", Gateway: "", Source: "192.168.0.2", Scope: 253, Device: "ifc-name", Priority: 13},
 	}
 
 	testRoutes := &pb.Routes{
@@ -163,7 +163,7 @@ func TestUpdateRoutes(t *testing.T) {
 
 	//Test a route setup mimicking what could be provided by PTP CNI plugin:
 	inputRoutesPTPExample := []*types.Route{
-		{Dest: "", Gateway: "192.168.0.1", Source: "", Scope: 0, Device: "ifc-name"},
+		{Dest: "", Gateway: "192.168.0.1", Source: "", Scope: 0, Device: "ifc-name", Priority: 13},
 		{Dest: "192.168.0.144/16", Gateway: "192.168.0.1", Source: "192.168.0.2", Scope: 0, Device: "ifc-name"},
 		{Dest: "192.168.0.1/32", Gateway: "", Source: "192.168.0.2", Scope: 254, Device: "ifc-name"},
 	}
@@ -176,7 +176,7 @@ func TestUpdateRoutes(t *testing.T) {
 
 	//Test unreachable example (no scope provided for initial link route)
 	inputRoutesNoScope := []*types.Route{
-		{Dest: "", Gateway: "192.168.0.1", Source: "", Scope: 0, Device: "ifc-name"},
+		{Dest: "", Gateway: "192.168.0.1", Source: "", Scope: 0, Device: "ifc-name", Priority: 13},
 		{Dest: "192.168.0.0/16", Gateway: "", Source: "192.168.0.2", Scope: 0, Device: "ifc-name"},
 	}
 	testRoutes.Routes = inputRoutesNoScope
@@ -217,7 +217,7 @@ func TestUpdateRoutesIPVlan(t *testing.T) {
 	//Test a route setup mimicking what could be provided by ipvlan CNI plugin:
 	inputRoutesIPVlanExample := []*types.Route{
 		// route "default dev ifc-name scope link"
-		{Dest: "", Gateway: "", Source: "", Scope: 1, Device: "ifc-name"},
+		{Dest: "", Gateway: "", Source: "", Scope: 1, Device: "ifc-name", Priority: 13},
 
 		// route "192.168.0.0/24 dev eth0 proto kernel scope link src 192.168.0.2"
 		// TODO : We dont really handle route protocol currently. We need to add this and
@@ -306,7 +306,7 @@ func TestListRoutes(t *testing.T) {
 
 	//Test a simple route setup:
 	inputRoutesSimple := []*types.Route{
-		{Dest: "", Gateway: "192.168.0.1", Source: "", Scope: 0, Device: "ifc-name"},
+		{Dest: "", Gateway: "192.168.0.1", Source: "", Scope: 0, Device: "ifc-name", Priority: 13},
 		{Dest: "192.168.0.0/16", Gateway: "", Source: "192.168.0.2", Scope: 253, Device: "ifc-name"},
 	}
 
