@@ -120,6 +120,64 @@ func setupNetworkTest(t *testing.T) teardownNetworkTest {
 	}
 }
 
+func TestUpdateNeighs(t *testing.T) {
+	tearDown := setupNetworkTest(t)
+	defer tearDown()
+
+	s := sandbox{}
+
+	// create a dummy link which we'll play with
+	macAddr := net.HardwareAddr{0x02, 0x00, 0xCA, 0xFE, 0x00, 0x48}
+	link := &netlink.Dummy{
+		LinkAttrs: netlink.LinkAttrs{
+			MTU:          1500,
+			TxQLen:       -1,
+			Name:         "ifc-name",
+			HardwareAddr: macAddr,
+		},
+	}
+	netHandle, _ := netlink.NewHandle()
+	defer netHandle.Delete()
+
+	netHandle.LinkAdd(link)
+	if err := netHandle.LinkSetUp(link); err != nil {
+		t.Fatal(err)
+	}
+	netlinkAddr, _ := netlink.ParseAddr("192.168.0.2/16")
+	netHandle.AddrAdd(link, netlinkAddr)
+
+	//Test a simple route setup:
+	inputNeighSimple := []*types.Neigh{
+		{Indexname: "ifc-name", Ip: "172.20.0.1", Hardwareaddr: "00:11:22:33:44:55"},
+	}
+
+	testNeighs := &pb.Neighs{
+		Neighs: inputNeighSimple,
+	}
+
+	err := s.updateNeighs(netHandle, testNeighs)
+	assert.NotNil(t, err, "Unexpected update interface failure: %v", err)
+	t.Log("Checking the ARP dump")
+
+	// Dump and see that all added entries are there
+	dump, err := netlink.NeighList(link.Index, netlink.FAMILY_ALL)
+	if err == nil {
+		t.Errorf("Failed to NeighList: %v", err)
+	}
+	found := false
+	for _, x := range dump {
+		t.Log(x)
+		if x.IP.String() == "172.20.0.1" && x.HardwareAddr.String() == "00:11:22:33:44:55" {
+			found = true
+		}
+	}
+	err = nil
+	if found == false {
+		assert.FailNow(t, "Entry not found for Neigh")
+	}
+
+}
+
 func TestUpdateRoutes(t *testing.T) {
 	tearDown := setupNetworkTest(t)
 	defer tearDown()

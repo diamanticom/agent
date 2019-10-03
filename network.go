@@ -336,6 +336,118 @@ func (s *sandbox) listInterfaces(netHandle *netlink.Handle) (*pb.Interfaces, err
 	return &interfaces, nil
 }
 
+///////////////
+// Neighbors //
+///////////////
+
+func (s *sandbox) deleteNeighs(netHandle *netlink.Handle, link int) error {
+	if netHandle == nil {
+		return errNoHandle
+	}
+
+	initNeighList, err := netHandle.NeighList(link, netlink.FAMILY_ALL)
+	if err != nil {
+		return err
+	}
+
+	for _, initNeigh := range initNeighList {
+		// don't delete Neighbours associated with lo:
+		link, _ := netHandle.LinkByIndex(initNeigh.LinkIndex)
+		if link.Attrs().Name == "lo" || link.Attrs().Name == "::1" {
+			continue
+		}
+
+		err = netHandle.NeighDel(&initNeigh)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *sandbox) updateNeighs(netHandle *netlink.Handle, requestedNeighs *pb.Neighs) (err error) {
+	if requestedNeighs == nil {
+		return nil
+	}
+	if netHandle == nil {
+		netHandle, err = netlink.NewHandle(unix.NETLINK_ROUTE)
+		if err != nil {
+			return err
+		}
+		defer netHandle.Delete()
+	}
+
+	for _, reqNeigh := range requestedNeighs.Neighs {
+		link, errlink := netlink.LinkByName(reqNeigh.Indexname)
+		if link == nil {
+			return errlink
+		}
+		if err = s.deleteNeighs(netHandle, link.Attrs().Index); err != nil {
+			return err
+		}
+		err = s.updateNeigh(netHandle, reqNeigh, true)
+		if err != nil {
+			agentLog.WithError(err).Error("update Neigh failed")
+			return err
+		}
+
+	}
+	return nil
+}
+
+func (s *sandbox) updateNeigh(netHandle *netlink.Handle, neigh *types.Neigh, add bool) (err error) {
+	var mac net.HardwareAddr
+
+	s.network.routesLock.Lock()
+	defer s.network.routesLock.Unlock()
+
+	if netHandle == nil {
+		netHandle, err = netlink.NewHandle(unix.NETLINK_ROUTE)
+		if err != nil {
+			return err
+		}
+		defer netHandle.Delete()
+	}
+
+	link, errlink := netlink.LinkByName(neigh.Indexname)
+	if link == nil {
+		return errlink
+	}
+
+	if add {
+		mac, err = net.ParseMAC(neigh.Hardwareaddr)
+		if err != nil {
+			return err
+		}
+		entry := netlink.Neigh{
+			LinkIndex:    link.Attrs().Index,
+			IP:           net.ParseIP(neigh.Ip),
+			HardwareAddr: mac,
+			State:        netlink.NUD_PERMANENT,
+		}
+		err = netlink.NeighAdd(&entry)
+		if err != nil {
+			return err
+		}
+	} else {
+		mac, err = net.ParseMAC(neigh.Hardwareaddr)
+		if err != nil {
+			return err
+		}
+		entry := netlink.Neigh{
+			LinkIndex:    link.Attrs().Index,
+			IP:           net.ParseIP(neigh.Ip),
+			HardwareAddr: mac,
+		}
+		err = netlink.NeighDel(&entry)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 ////////////
 // Routes //
 ////////////
