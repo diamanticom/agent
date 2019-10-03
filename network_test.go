@@ -156,12 +156,12 @@ func TestUpdateNeighs(t *testing.T) {
 	}
 
 	err := s.updateNeighs(netHandle, testNeighs)
-	assert.NotNil(t, err, "Unexpected update interface failure: %v", err)
+	assert.Nil(t, err, "Unexpected update interface failure: %v", err)
 	t.Log("Checking the ARP dump")
 
 	// Dump and see that all added entries are there
 	dump, err := netlink.NeighList(link.Index, netlink.FAMILY_ALL)
-	if err == nil {
+	if err != nil {
 		t.Errorf("Failed to NeighList: %v", err)
 	}
 	found := false
