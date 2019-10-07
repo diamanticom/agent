@@ -136,7 +136,11 @@ func TestUpdateNeighs(t *testing.T) {
 			HardwareAddr: macAddr,
 		},
 	}
-	netHandle, _ := netlink.NewHandle()
+	netHandle, errhandle := netlink.NewHandle()
+	if errhandle != nil {
+		assert.FailNow(t, "Net Handle not found ,failing test")
+	}
+
 	defer netHandle.Delete()
 
 	netHandle.LinkAdd(link)
