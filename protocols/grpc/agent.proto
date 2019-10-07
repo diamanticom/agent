@@ -296,6 +296,10 @@ message Interfaces {
 	repeated types.Interface Interfaces = 1;
 }
 
+message Neighs {
+	repeated types.Neigh Neighs = 1;
+}
+
 message Routes {
 	repeated types.Route Routes = 1;
 }
@@ -306,6 +310,7 @@ message UpdateInterfaceRequest {
 
 message UpdateRoutesRequest {
 	Routes routes = 1;
+	Neighs neighs = 2;
 }
 
 message ListInterfacesRequest {

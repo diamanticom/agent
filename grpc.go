@@ -1515,6 +1515,10 @@ func (a *agentGRPC) UpdateInterface(ctx context.Context, req *pb.UpdateInterface
 }
 
 func (a *agentGRPC) UpdateRoutes(ctx context.Context, req *pb.UpdateRoutesRequest) (*pb.Routes, error) {
+	err := a.sandbox.updateNeighs(nil, req.Neighs)
+	if err != nil {
+		return nil, err
+	}
 	return a.sandbox.updateRoutes(nil, req.Routes)
 }
 

@@ -39,6 +39,12 @@ message Interface {
 	uint32 raw_flags = 8;
 }
 
+message Neigh {
+    string indexname = 1;
+    string ip = 2;     
+    string hardwareaddr = 3;
+}
+
 message Route {
 	string dest = 1;
 	string gateway = 2;
